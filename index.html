@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Extension Preflight: check your Chrome extension package before you submit</title>
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 2.5 3.5 5v4.5c0 3.4 2.6 6.5 6.5 8 3.9-1.5 6.5-4.6 6.5-8V5L10 2.5Z" />
+          <path d="m7.5 10 1.8 1.8 3.4-3.6" />
+        </svg>
+        <span>Extension Preflight</span>
+      </div>
+
+      <h1>Check your extension package before Google does.</h1>
+
+      <p class="lede">
+        Scan the ZIP you are about to upload. It finds the permission, manifest and packaging
+        problems that reviewers look for.
+      </p>
+
+      <p class="privacy">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="8.5" width="12" height="8" rx="1.6" />
+          <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5" />
+        </svg>
+        <span>Runs locally. No signup. Your code never leaves your browser.</span>
+      </p>
+
+      <div id="drop">
+        <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 15.5V4" />
+          <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+          <path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />
+        </svg>
+
+        <div class="drop-copy">
+          <strong id="drop-title">Drop your extension ZIP here</strong>
+          <span id="drop-sub">or choose it from your computer</span>
+        </div>
+
+        <button id="choose" type="button">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 5.5h5l1.5 2h6.5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z" />
+          </svg>
+          Choose ZIP file
+        </button>
+
+        <p class="drop-hint">ZIP files only. Your file is read in this tab and never uploaded.</p>
+        <input id="file" type="file" accept=".zip,application/zip" hidden />
+      </div>
+
+      <section class="checks">
+        <h2>What gets checked</h2>
+        <ul>
+          <li>Manifest present and valid</li>
+          <li>Broad host permissions</li>
+          <li>Permissions you never use</li>
+          <li>Permissions covered elsewhere</li>
+          <li>Content Security Policy problems</li>
+          <li>Files missing from the ZIP</li>
+          <li>Scripts from another server</li>
+          <li>Obfuscated code</li>
+        </ul>
+      </section>
+
+      <p class="scope">
+        This reads your package only. It cannot see your store listing, your privacy policy, or
+        whether your extension works.
+      </p>
+
+      <section id="output"></section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
