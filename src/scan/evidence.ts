@@ -8,8 +8,16 @@ export const makeEvidence = (
   offset: number,
   matchLength: number,
 ): Evidence => {
-  const start = Math.max(0, offset - CONTEXT_CHARS)
-  const end = Math.min(text.length, offset + matchLength + CONTEXT_CHARS)
+  const windowStart = Math.max(0, offset - CONTEXT_CHARS)
+  const windowEnd = Math.min(text.length, offset + matchLength + CONTEXT_CHARS)
+
+  const firstBreak = text.indexOf('\n', windowStart)
+  const lastBreak = text.lastIndexOf('\n', windowEnd)
+
+  const start =
+    windowStart > 0 && firstBreak !== -1 && firstBreak < offset ? firstBreak + 1 : windowStart
+  const end =
+    windowEnd < text.length && lastBreak > offset + matchLength ? lastBreak : windowEnd
 
   return {
     file,

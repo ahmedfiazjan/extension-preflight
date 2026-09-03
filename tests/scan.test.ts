@@ -100,7 +100,7 @@ describe('redundant permissions', () => {
     )
 
     const finding = result.findings.find((f) => f.ruleId === 'redundant-permission')
-    expect(finding?.confidence).toBe('medium')
+    expect(finding?.basis).toBe('Exact manifest match')
   })
 
   it('does not flag activeTab when no host permissions are declared', () => {
@@ -218,6 +218,47 @@ describe('content security policy', () => {
     )
 
     expect(result.findings.map((f) => f.ruleId)).not.toContain('csp-invalid')
+  })
+
+  it('does not flag remote origins in a directive that cannot load code', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({
+          content_security_policy: {
+            extension_pages:
+              "default-src 'none'; script-src 'self'; connect-src *; img-src * data:; navigate-to 'self' https://darkreader.org/*",
+          },
+        }),
+      }),
+    )
+
+    expect(result.findings.map((f) => f.ruleId)).not.toContain('csp-invalid')
+  })
+
+  it('does not flag unsafe-inline in style-src', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({
+          content_security_policy: {
+            extension_pages: "script-src 'self'; style-src 'self' 'unsafe-inline'",
+          },
+        }),
+      }),
+    )
+
+    expect(result.findings.map((f) => f.ruleId)).not.toContain('csp-invalid')
+  })
+
+  it('flags a remote origin in default-src when script-src is absent', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({
+          content_security_policy: { extension_pages: 'default-src https://cdn.example.com' },
+        }),
+      }),
+    )
+
+    expect(result.findings.map((f) => f.ruleId)).toContain('csp-invalid')
   })
 })
 
@@ -356,6 +397,37 @@ describe('permission justifications', () => {
     expect(drafted).toContain('calendar.google.com')
   })
 
+
+  it('drafts a justification for broad host access', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({ host_permissions: ['<all_urls>'] }),
+      }),
+    )
+
+    const host = result.justifications.permissions.find((j) => j.permission === 'host permissions')
+    expect(host?.text).toContain('every site')
+  })
+
+  it('names the origins when host access is narrow', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({ host_permissions: ['https://calendar.google.com/*'] }),
+      }),
+    )
+
+    const host = result.justifications.permissions.find((j) => j.permission === 'host permissions')
+    expect(host?.text).toContain('calendar.google.com')
+  })
+
+  it('writes no host justification when the extension asks for no host access', () => {
+    const result = scan(zip({ 'manifest.json': manifest({ permissions: ['storage'] }) }))
+
+    expect(result.justifications.permissions.map((j) => j.permission)).not.toContain(
+      'host permissions',
+    )
+  })
+
   it('proposes a negative remote code answer when nothing remote is detected', () => {
     const result = scan(zip({ 'manifest.json': manifest(), 'popup.html': '<script src="a.js">' }))
 
@@ -449,5 +521,82 @@ describe('remote code attestation', () => {
     const result = scan(zip({ 'manifest.json': manifest() }), [exploding])
 
     expect(result.justifications.remoteCode.text).not.toContain('No, I am not using remote code')
+  })
+})
+
+describe('evidence excerpts', () => {
+  it('starts at a line boundary rather than mid line', () => {
+    const source = JSON.stringify(
+      {
+        manifest_version: 3,
+        name: 'Test',
+        version: '1.0.0',
+        description: 'x'.repeat(240),
+        host_permissions: ['<all_urls>'],
+      },
+      null,
+      4,
+    )
+
+    const result = scan(zip({ 'manifest.json': source }))
+    const evidence = result.findings.find((f) => f.ruleId === 'broad-host-permissions')?.evidence
+
+    const firstLine = evidence?.excerpt.split('\n')[0] ?? ''
+    expect(firstLine).not.toBe('')
+    expect(source.includes(`\n${firstLine}\n`)).toBe(true)
+  })
+
+  it('keeps the raw window when the file has no line breaks', () => {
+    const source = JSON.stringify({
+      manifest_version: 3,
+      name: 'Test',
+      version: '1.0.0',
+      description: 'x'.repeat(240),
+      host_permissions: ['<all_urls>'],
+    })
+
+    const result = scan(zip({ 'manifest.json': source }))
+    const evidence = result.findings.find((f) => f.ruleId === 'broad-host-permissions')?.evidence
+
+    expect(evidence?.excerpt).not.toContain('\n')
+    expect(evidence?.excerpt.slice(evidence.matchStart, evidence.matchStart + evidence.matchLength)).toBe(
+      '<all_urls>',
+    )
+  })
+})
+
+describe('detection basis', () => {
+  it('states a basis on every finding, from a package that trips several rules at once', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest({
+          host_permissions: ['<all_urls>'],
+          permissions: ['storage', 'activeTab'],
+          content_security_policy: { extension_pages: 'script-src https://cdn.example.com' },
+          action: { default_popup: 'missing.html' },
+        }),
+        'popup.js': '<html></html>',
+      }),
+    )
+
+    const rulesFired = new Set(result.findings.map((f) => f.ruleId))
+    expect(rulesFired.size).toBeGreaterThanOrEqual(3)
+    expect(result.findings.filter((f) => !f.basis)).toEqual([])
+  })
+})
+
+describe('scan coverage', () => {
+  it('counts only the files it actually read, so coverage cannot be overstated', () => {
+    const result = scan(
+      zip({
+        'manifest.json': manifest(),
+        'popup.js': 'const a = 1',
+        'icon.png': 'not really a png',
+        'font.woff2': 'not really a font',
+      }),
+    )
+
+    expect(result.fileCount).toBe(4)
+    expect(result.filesRead).toBe(2)
   })
 })

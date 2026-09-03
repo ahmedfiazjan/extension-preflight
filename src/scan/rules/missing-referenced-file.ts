@@ -62,7 +62,7 @@ export const missingReferencedFile: Rule = {
       why: `The manifest asks for ${path}, but nothing by that name is in the ZIP. Chrome will refuse to load the extension. This usually means the build wrote somewhere other than the folder you zipped.`,
       fix: `Add ${path} to the ZIP, or point the manifest at the path that is actually there.`,
       reference: REFERENCE,
-      confidence: 'high' as const,
+      basis: 'Manifest reference against ZIP listing',
       evidence: makeEvidence(
         'manifest.json',
         manifestText,

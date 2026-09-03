@@ -33,7 +33,7 @@ export const obfuscatedCode: Rule = {
             why: `This file holds ${matches.length} character escapes, roughly ${density.toFixed(1)} for every thousand characters. Normal minified code sits well under one. That density is a signature of obfuscation tools, and Chrome expects a reviewer to be able to follow what your extension does. Minifying is fine and is not what this flags.`,
             fix: 'Ship readable or minified code. If a dependency arrives obfuscated, swap it out or be ready to explain it during review.',
             reference: REFERENCE,
-            confidence: 'medium' as const,
+            basis: 'File statistics heuristic',
             evidence: makeEvidence(file.path, file.text, first.index, first[0].length),
           },
         ]

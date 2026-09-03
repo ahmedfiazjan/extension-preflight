@@ -34,7 +34,7 @@ export const redundantPermission: Rule = {
         why: 'Every origin you declare is already granted permanently through host_permissions, so activeTab has nothing left to unlock. Reviewers do reject submissions for requesting a permission another setting already covers, and at least one developer fixed exactly this by deleting activeTab.',
         fix: 'Check whether your extension ever acts on a site outside your host permissions. If it does not, remove activeTab.',
         reference: REFERENCE,
-        confidence: 'medium',
+        basis: 'Exact manifest match',
         evidence: makeEvidence(
           'manifest.json',
           ctx.manifestText,

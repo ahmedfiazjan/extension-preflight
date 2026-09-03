@@ -114,9 +114,7 @@ const findingCard = (finding: Finding): HTMLElement => {
   link.rel = 'noopener noreferrer'
   link.target = '_blank'
   footer.appendChild(link)
-  footer.appendChild(
-    el('span', 'confidence', finding.confidence === 'high' ? 'Confidence: high' : 'Confidence: medium'),
-  )
+  footer.appendChild(el('span', 'confidence', finding.basis))
   card.appendChild(footer)
 
   return card

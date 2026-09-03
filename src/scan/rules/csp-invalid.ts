@@ -5,6 +5,7 @@ import { asRecord } from '../manifest-fields'
 const REFERENCE = 'https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements'
 
 const UNSAFE_DIRECTIVES = ["'unsafe-eval'", "'unsafe-inline'"]
+const CODE_DIRECTIVES = ['script-src', 'script-src-elem', 'worker-src', 'object-src']
 
 const finding = (
   manifestText: string,
@@ -19,9 +20,24 @@ const finding = (
   why,
   fix,
   reference: REFERENCE,
-  confidence: 'high',
+  basis: 'Policy directive parse',
   evidence: makeEvidence('manifest.json', manifestText, locate(manifestText, needle), needle.length),
 })
+
+const codeSources = (policy: string): string => {
+  const declared = new Map<string, string>()
+
+  for (const part of policy.split(';')) {
+    const trimmed = part.trim()
+    if (trimmed === '') continue
+    const space = trimmed.search(/\s/)
+    const name = space === -1 ? trimmed : trimmed.slice(0, space)
+    declared.set(name.toLowerCase(), space === -1 ? '' : trimmed.slice(space + 1))
+  }
+
+  const fallback = declared.get('default-src') ?? ''
+  return CODE_DIRECTIVES.map((name) => declared.get(name) ?? fallback).join(' ')
+}
 
 export const cspInvalid: Rule = {
   id: 'csp-invalid',
@@ -47,7 +63,9 @@ export const cspInvalid: Rule = {
     const pages = asRecord(policy)['extension_pages']
     if (typeof pages !== 'string') return []
 
-    const unsafe = UNSAFE_DIRECTIVES.filter((directive) => pages.includes(directive))
+    const sources = codeSources(pages)
+
+    const unsafe = UNSAFE_DIRECTIVES.filter((directive) => sources.includes(directive))
     if (unsafe.length > 0) {
       const directive = unsafe[0] as string
       return [
@@ -61,7 +79,7 @@ export const cspInvalid: Rule = {
       ]
     }
 
-    const remote = /https?:\/\/[^\s;'"]+/.exec(pages)
+    const remote = /https?:\/\/[^\s;'"]+/.exec(sources)
     if (remote) {
       return [
         finding(

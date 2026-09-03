@@ -2,7 +2,6 @@ import type { Rejection } from './guards'
 import type { Justifications } from './justifications'
 
 export type Severity = 'high' | 'review'
-export type Confidence = 'high' | 'medium'
 export type RuleInput = 'manifest' | 'files'
 
 export type Evidence = {
@@ -20,7 +19,7 @@ export type Finding = {
   why: string
   fix: string
   reference: string
-  confidence: Confidence
+  basis: string
   evidence: Evidence | null
 }
 
@@ -49,6 +48,7 @@ export type ScanResult = {
   erroredRules: string[]
   checksPassed: number
   fileCount: number
+  filesRead: number
   rejection: Rejection | null
   justifications: Justifications
 }

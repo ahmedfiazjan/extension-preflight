@@ -22,7 +22,7 @@ export const manifestMissing: Rule = {
           ? 'Select the files inside your extension folder, then zip those. Do not zip the folder itself.'
           : 'Add a manifest.json at the top level of the ZIP.',
         reference: REFERENCE,
-        confidence: 'high',
+        basis: 'ZIP entry listing',
         evidence: null,
       },
     ]

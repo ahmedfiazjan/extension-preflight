@@ -66,6 +66,7 @@ const rejected = (rejection: Rejection): ScanResult => ({
   erroredRules: [],
   checksPassed: 0,
   fileCount: 0,
+  filesRead: 0,
   rejection,
   justifications: { permissions: [], remoteCode: { usesRemoteCode: false, text: '' } },
 })
@@ -122,6 +123,7 @@ export const scan = (bytes: Uint8Array, rules: Rule[] = defaultRules): ScanResul
       (rule) => !flagged.has(rule.id) && !erroredRules.includes(rule.id),
     ).length,
     fileCount: entries.length,
+    filesRead: files.length,
     rejection: null,
     justifications: buildJustifications(context.manifest, findings, erroredRules),
   }

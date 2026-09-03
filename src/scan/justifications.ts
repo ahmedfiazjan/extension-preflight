@@ -1,5 +1,10 @@
 import type { Finding } from './types'
-import { contentScriptMatches, declaredPermissions, hostPermissions } from './manifest-fields'
+import {
+  contentScriptMatches,
+  declaredPermissions,
+  hostPermissions,
+  isBroadPattern,
+} from './manifest-fields'
 
 export type Justification = { permission: string; text: string }
 
@@ -52,6 +57,21 @@ const TEMPLATES: Record<string, (scope: string) => string> = {
   sidePanel: () => 'Shows the extension in the browser side panel.',
 }
 
+const hostJustification = (
+  manifest: Record<string, unknown>,
+  scope: string,
+): Justification | null => {
+  const patterns = [...hostPermissions(manifest), ...contentScriptMatches(manifest)]
+  if (patterns.length === 0) return null
+
+  return {
+    permission: 'host permissions',
+    text: patterns.some(isBroadPattern)
+      ? 'Runs on every site the user visits. Name the feature that needs every site, because a reviewer will ask why a narrower list will not do.'
+      : `Runs on ${scope} and nowhere else. Name the feature on those sites that needs it.`,
+  }
+}
+
 const fallback = (permission: string, scope: string) =>
   `Uses the ${permission} API for a feature that affects ${scope}. Replace this line with the feature that actually needs it.`
 
@@ -82,11 +102,16 @@ export const buildJustifications = (
 
   const scope = describeScope(manifest)
 
+  const host = hostJustification(manifest, scope)
+
   return {
-    permissions: declaredPermissions(manifest).map((permission) => ({
-      permission,
-      text: TEMPLATES[permission]?.(scope) ?? fallback(permission, scope),
-    })),
+    permissions: [
+      ...declaredPermissions(manifest).map((permission) => ({
+        permission,
+        text: TEMPLATES[permission]?.(scope) ?? fallback(permission, scope),
+      })),
+      ...(host ? [host] : []),
+    ],
     remoteCode,
   }
 }

@@ -27,7 +27,7 @@ export const unusedPermission: Rule = {
           why: `Your manifest asks for ${permission}, but no reference to a ${property} API turned up anywhere in the package. Reviewers send back a rejection worded "Requesting but not using the following permission(s)" for this. This check reads your code without running it, so it cannot see an API you reach dynamically. Treat it as something to confirm, not as proof.`,
           fix: `Confirm you really use ${permission}. If you do not, take it out of the manifest.`,
           reference: REFERENCE,
-          confidence: 'medium' as const,
+          basis: 'Whole-package text search',
           evidence: makeEvidence(
             'manifest.json',
             manifestText,

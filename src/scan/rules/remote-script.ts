@@ -22,7 +22,7 @@ export const remoteScript: Rule = {
           why: 'Manifest V3 requires everything your extension does to be visible in the code you submit. A script tag pointing at another server pulls in logic nobody reviewed. This is one of the most reliably enforced rejection reasons there is.',
           fix: 'Download that script, add it to your package, and point the tag at the local copy.',
           reference: REFERENCE,
-          confidence: 'high' as const,
+          basis: 'HTML script tag parse',
           evidence: makeEvidence(file.path, file.text, match.index, match[0].length),
         })),
       ),

@@ -22,7 +22,7 @@ export const manifestInvalid: Rule = {
         why: `The parser stopped here: ${ctx.manifestError}. Chrome will not load an extension whose manifest does not parse, and none of the other manifest checks could run on it.`,
         fix: 'Fix the syntax at that position. Trailing commas and comments cause this most often, and neither is allowed in JSON.',
         reference: REFERENCE,
-        confidence: 'high',
+        basis: 'manifest.json parse',
         evidence: makeEvidence(
           'manifest.json',
           ctx.manifestText,
