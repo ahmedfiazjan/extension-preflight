@@ -1,6 +1,6 @@
 # Extension Preflight
 
-![Extension Preflight scanning an extension](docs/screenshot.png)
+![Extension Preflight report for Dark Reader: one item to review, eight checks with no issue](docs/screenshot.png)
 
 Extension Preflight reads a packaged Chrome extension (the ZIP you upload to the Chrome Web Store) and lists the problems a reviewer is likely to raise. It checks the manifest, the permissions, the content security policy, the packaging and the code, and it shows an excerpt of your own files behind every finding.
 
